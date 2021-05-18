@@ -72,30 +72,74 @@ function useDrivePicker() {
         }
     };
     var createPicker = function (_a) {
-        var token = _a.token, _b = _a.appId, appId = _b === void 0 ? "" : _b, _c = _a.supportDrives, supportDrives = _c === void 0 ? false : _c, developerKey = _a.developerKey, _d = _a.viewId, viewId = _d === void 0 ? "DOCS" : _d, disabled = _a.disabled, multiselect = _a.multiselect, _e = _a.showUploadView, showUploadView = _e === void 0 ? false : _e, showUploadFolders = _a.showUploadFolders, _f = _a.setParentFolder, setParentFolder = _f === void 0 ? "" : _f;
+        var token = _a.token, _b = _a.appId, appId = _b === void 0 ? "" : _b, _c = _a.supportDrives, supportDrives = _c === void 0 ? false : _c, developerKey = _a.developerKey, views = _a.views, _d = _a.disabled, disabled = _d === void 0 ? false : _d, multiselect = _a.multiselect, _e = _a.mineOnly, mineOnly = _e === void 0 ? false : _e, _f = _a.navHidden, navHidden = _f === void 0 ? false : _f;
         if (disabled)
             return false;
-        var view = new google.picker.View(google.picker.ViewId[viewId]);
-        view.setMimeTypes("image/png,image/jpeg,image/jpg");
-        var uploadView = new google.picker.DocsUploadView();
-        if (showUploadFolders)
-            uploadView.setIncludeFolders(true);
-        if (setParentFolder)
-            uploadView.setParent(setParentFolder);
+        // const viewObjects = views.map(view => view instanceof DocsUploadView ? new google.picker.DocsUploadView() : new google.picker.DocsView((view as DocsUploadView).viewId)) ;
+        var viewObjects = views.map(function (view) {
+            if (view.hasOwnProperty("viewId")) {
+                var v = new google.picker.DocsUploadView();
+                for (var prop in view) {
+                    switch (prop) {
+                        case "mimeTypes":
+                            v.setMimeTypes(view.mimeTypes);
+                            break;
+                        case "parent":
+                            v.setParent(view.parent);
+                            break;
+                        case "includeFolders":
+                            v.setIncludeFolders(view.includeFolders);
+                            break;
+                    }
+                }
+            }
+            else {
+                var v = new google.picker.DocsView();
+                for (var prop in view) {
+                    switch (prop) {
+                        case "mimeTypes":
+                            v.setMimeTypes(view.mimeTypes);
+                            break;
+                        case "parent":
+                            v.setParent(view.parent);
+                            break;
+                        case "includeFolders":
+                            v.setIncludeFolders(view.includeFolders);
+                            break;
+                        case "enableDrives":
+                            v.setEnableDrives(view.enableDrives);
+                            break;
+                        case "selectFolderEnabled":
+                            v.setSelectFolderEnabled(view.selectFolderEnabled);
+                            break;
+                        case "viewMode":
+                            v.setMode(view.viewMode);
+                            break;
+                        case "ownedByMe":
+                            v.setOwnedByMe(view.ownedByMe);
+                            break;
+                        case "isStarred":
+                            v.setStarred(view.isStarred);
+                            break;
+                    }
+                }
+            }
+        });
         picker = new google.picker.PickerBuilder()
             .setAppId(appId)
             .setOAuthToken(token)
-            .addView(view)
             .setDeveloperKey(developerKey)
             .setCallback(pickerCallback)
             .setLocale("en");
+        viewObjects.forEach(function (view) { return picker.addView(view); });
+        if (mineOnly)
+            picker.enableFeature(google.picker.Feature.MINE_ONLY);
+        if (navHidden)
+            picker.enableFeature(google.picker.Feature.NAV_HIDDEN);
         if (multiselect)
             picker.enableFeature(google.picker.Feature.MULTISELECT_ENABLED);
-        if (showUploadView)
-            picker.addView(uploadView);
-        if (supportDrives) {
+        if (supportDrives)
             picker.enableFeature(google.picker.Feature.SUPPORT_DRIVES);
-        }
         picker.build().setVisible(true);
         return true;
     };

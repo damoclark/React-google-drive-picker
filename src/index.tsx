@@ -3,7 +3,7 @@ declare let google: any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare let window: any
 import { useEffect, useState } from "react";
-import { authResult, defaultConfiguration, PickerCallback, PickerConfiguration } from "./typeDefs";
+import { authResult, defaultConfiguration, PickerCallback, PickerConfiguration, DocsUploadView, DocsView } from "./typeDefs";
 import { useInjectScript } from './useInjectScript';
 
 
@@ -15,7 +15,7 @@ export default function useDrivePicker(): [(config: PickerConfiguration) => bool
 	const [openAfterAuth, setOpenAfterAuth] = useState(false)
 	const [config, setConfig] = useState<PickerConfiguration>(defaultConfiguration)
 	
-	let picker = null;
+	let picker: any = null;
 
 	// get the apis from googleapis
 	useEffect(() => {
@@ -81,30 +81,75 @@ export default function useDrivePicker(): [(config: PickerConfiguration) => bool
 
 
 	const createPicker = (
-		{token, appId = "", supportDrives = false, developerKey, viewId = "DOCS",
-		disabled, multiselect, showUploadView = false, showUploadFolders, setParentFolder= "" 
+		{token, appId = "", supportDrives = false, developerKey, views,
+		disabled = false, multiselect, mineOnly = false, navHidden = false
 	}: PickerConfiguration) => {
 		if(disabled) return false
-    const view = new google.picker.View(google.picker.ViewId[viewId]);
-		const uploadView = new google.picker.DocsUploadView();
-		if(showUploadFolders) uploadView.setIncludeFolders(true)
-    if(setParentFolder) uploadView.setParent(setParentFolder)
-		
+		// const viewObjects = views.map(view => view instanceof DocsUploadView ? new google.picker.DocsUploadView() : new google.picker.DocsView((view as DocsUploadView).viewId)) ;
+		const viewObjects = views.map(view => {
+			if(view.hasOwnProperty("viewId")) {
+				const v = new google.picker.DocsUploadView() ;
+				for(const prop in view) {
+					switch(prop) {
+						case "mimeTypes":
+							v.setMimeTypes(view.mimeTypes) ;
+							break ;
+						case "parent":
+							v.setParent(view.parent) ;
+							break ;
+						case "includeFolders":
+							v.setIncludeFolders(view.includeFolders) ;
+							break ;
+					}
+				}
+			}
+			else {
+				const v = new google.picker.DocsView() ;
+				for(const prop in view) {
+					switch(prop) {
+						case "mimeTypes":
+							v.setMimeTypes(view.mimeTypes) ;
+							break ;
+						case "parent":
+							v.setParent(view.parent) ;
+							break ;
+						case "includeFolders":
+							v.setIncludeFolders(view.includeFolders) ;
+							break ;
+						case "enableDrives":
+							v.setEnableDrives((view as DocsView).enableDrives) ;
+							break ;
+						case "selectFolderEnabled":
+							v.setSelectFolderEnabled((view as DocsView).selectFolderEnabled)
+							break ;
+						case "viewMode":
+							v.setMode((view as DocsView).viewMode) ;
+							break ;
+						case "ownedByMe":
+							v.setOwnedByMe((view as DocsView).ownedByMe)
+							break ;
+						case "isStarred":
+							v.setStarred((view as DocsView).isStarred)
+							break ;
+					}
+				}
+			}
+		}) ;
+
 		picker = new google.picker.PickerBuilder()
 			.setAppId(appId)
 			.setOAuthToken(token)
-			.addView(view)
 			.setDeveloperKey(developerKey)
-      .setCallback(pickerCallback)
-			.setLocale("en")
+			.setCallback(pickerCallback)
+			.setLocale("en") ;
 
-			if(multiselect) picker.enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+    	viewObjects.forEach(view => picker.addView(view)) ;
 
-			if(showUploadView) picker.addView(uploadView)
+		if(mineOnly) picker.enableFeature(google.picker.Feature.MINE_ONLY) ;
+		if(navHidden) picker.enableFeature(google.picker.Feature.NAV_HIDDEN) ;
+		if(multiselect) picker.enableFeature(google.picker.Feature.MULTISELECT_ENABLED) ;
+		if(supportDrives) picker.enableFeature(google.picker.Feature.SUPPORT_DRIVES) ;
 
-			if(supportDrives){
-				picker.enableFeature(google.picker.Feature.SUPPORT_DRIVES)
-			} 
 		picker.build().setVisible(true);
 		return true
   };

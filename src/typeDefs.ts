@@ -52,22 +52,43 @@ type ViewIdOptions =
   | "PDFS"
   | "SPREADSHEETS";
 
+export type DocsUploadView = {
+  includeFolders?: boolean;
+  parent?: string;
+  mimeTypes?: string;
+}
+
+type ViewMode =
+  | "GRID"
+  | "LIST";
+
+export type DocsView = {
+  viewId: ViewIdOptions;
+  mimeTypes?: string;
+  enableDrives?: boolean;
+  includeFolders?: boolean;
+  selectFolderEnabled?: boolean;
+  viewMode?: ViewMode;
+  ownedByMe?: boolean;
+  parent?: string;
+  isStarred?: boolean;
+} ;
+
 export type PickerConfiguration = {
   clientId: string;
   developerKey: string;
-  viewId: ViewIdOptions;
+  views: (DocsUploadView|DocsView)[];
   token?: string;
+  appId?: string;
+  mineOnly?: boolean;
+  navHidden?: boolean;
   multiselect?: boolean;
   disabled?: boolean;
-  appId?: string;
   supportDrives?: boolean;
-  showUploadView?: boolean;
-  showUploadFolders?: boolean;
-  setParentFolder?: string;
 };
 
 export const defaultConfiguration: PickerConfiguration = {
   clientId: "",
   developerKey: "",
-  viewId: "DOCS",
+  views: [<DocsView>{viewId: "DOCS"}],
 };

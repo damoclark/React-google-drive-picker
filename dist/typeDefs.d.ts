@@ -42,18 +42,34 @@ export declare type authResult = {
     error: boolean | undefined;
 };
 declare type ViewIdOptions = "DOCS" | "DOCS_IMAGES" | "DOCS_IMAGES_AND_VIDEOS" | "DOCS_VIDEOS" | "DOCUMENTS" | "DRAWINGS" | "FOLDERS" | "FORMS" | "PDFS" | "SPREADSHEETS";
+export declare type DocsUploadView = {
+    includeFolders?: boolean;
+    parent?: string;
+    mimeTypes?: string;
+};
+declare type ViewMode = "GRID" | "LIST";
+export declare type DocsView = {
+    viewId: ViewIdOptions;
+    mimeTypes?: string;
+    enableDrives?: boolean;
+    includeFolders?: boolean;
+    selectFolderEnabled?: boolean;
+    viewMode?: ViewMode;
+    ownedByMe?: boolean;
+    parent?: string;
+    isStarred?: boolean;
+};
 export declare type PickerConfiguration = {
     clientId: string;
     developerKey: string;
-    viewId: ViewIdOptions;
+    views: (DocsUploadView | DocsView)[];
     token?: string;
+    appId?: string;
+    mineOnly?: boolean;
+    navHidden?: boolean;
     multiselect?: boolean;
     disabled?: boolean;
-    appId?: string;
     supportDrives?: boolean;
-    showUploadView?: boolean;
-    showUploadFolders?: boolean;
-    setParentFolder?: string;
 };
 export declare const defaultConfiguration: PickerConfiguration;
 export {};
